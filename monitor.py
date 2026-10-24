@@ -5,9 +5,10 @@ import sys
 import pytz
 import requests
 
-CONFIG_FILE = "config.json"
-TRACKED_FILE = "tracked_shows.json"
-HISTORY_FILE = "history.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
+TRACKED_FILE = os.path.join(BASE_DIR, "tracked_shows.json")
+HISTORY_FILE = os.path.join(BASE_DIR, "history.json")
 
 
 def load_json(filepath, default):

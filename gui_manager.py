@@ -7,8 +7,9 @@ from tkinter import messagebox, ttk
 
 import requests
 
-CONFIG_FILE = "config.json"
-TRACKED_FILE = "tracked_shows.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
+TRACKED_FILE = os.path.join(BASE_DIR, "tracked_shows.json")
 
 
 def load_json(filepath, default):
@@ -224,9 +225,7 @@ class TVTrackerGUI:
                     timeout=10,
                 ).json()
 
-                prov_url = (
-                    f"https://api.themoviedb.org/3/tv/{show_id}/watch/providers"
-                )
+                prov_url = f"https://api.themoviedb.org/3/tv/{show_id}/watch/providers"
                 prov_res = requests.get(
                     prov_url, params={"api_key": self.api_key}, timeout=10
                 ).json()
@@ -238,9 +237,7 @@ class TVTrackerGUI:
                 network_str = ", ".join(networks[:2])
 
                 # Dostępność VOD w Polsce
-                pl_providers = (
-                    prov_res.get("results", {}).get("PL", {}).get("flatrate", [])
-                )
+                pl_providers = prov_res.get("results", {}).get("PL", {}).get("flatrate", [])
                 vod_names = [p["provider_name"] for p in pl_providers]
                 vod_str = ", ".join(vod_names[:3]) if vod_names else "Brak w VOD"
 
@@ -258,8 +255,7 @@ class TVTrackerGUI:
                 detailed_results.append(
                     {
                         "id": show_id,
-                        "title": det_res.get("name")
-                        or det_res.get("original_name"),
+                        "title": det_res.get("name") or det_res.get("original_name"),
                         "orig_title": det_res.get("original_name"),
                         "year": year,
                         "network": network_str,
@@ -269,11 +265,9 @@ class TVTrackerGUI:
                     }
                 )
 
-            self.root.after(self.populate_search_results, detailed_results)
+            self.root.after(0, self.populate_search_results, detailed_results)
         except Exception as e:
-            self.root.after(
-                self.show_error, f"Wystąpił problem z połączeniem: {e}"
-            )
+            self.root.after(0, self.show_error, f"Wystąpił problem z połączeniem: {e}")
 
     def populate_search_results(self, items):
         self.search_btn.config(state="normal")
