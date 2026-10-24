@@ -2,8 +2,11 @@
   "tmdb_api_key": "a019fb43d6259a4e4944dbd9a4e0dd4f",
   "webhooks": {
     "new_series": "https://discord.com/api/webhooks/1563508843709866086/SlbFo8EVgFwTMKUaliQ9AwexTh2v7GqSHDAzkj7UqNkAKMUIkaeVgM0LCdldWehVeAUJ",
-    "returning_series": "https://discord.com/api/webhooks/1563509093870600243/4qBje2GI8CwwVpkG_INV3Lqc9w7Zh2wPI9-uh7OZejBzWrpZz1YtnIKhUQDq7cYLCzI0"
+    "returning_series": "https://discord.com/api/webhooks/1563509093870600243/4qBje2GI8CwwVpkG_INV3Lqc9w7Zh2wPI9-uh7OZejBzWrpZz1YtnIKhUQDq7cYLCzI0",
+    "movie_world": "https://discord.com/api/webhooks/1563555802734923827/2B-KuVRYiNRIT0sdkIUn0X-XAa5Zuv6iyoJrCj-N3xMU6f3LGdckEBnbeGIzMXD6_aPy",
+    "movie_pl": "https://discord.com/api/webhooks/1563555958792261832/ZQTR3GqcLkwq98AkLXOYp2jfOvOWkqSYs6_xlrKh9hveOWfnULxwsq1WyboMvHXeCc9C",
+    "pl_auto_releases": "https://discord.com/api/webhooks/1563562595862970488/P6P6dt45zUYBRQq2my7hvcG94Sal7PUYyZK2ZyCU0i1mrBkzMQ0ZekzpCjIs_egERvm6"
   },
-  "min_popularity": 15.0,
-  "check_days_ahead": 7
+  "min_popularity": 10.0,
+  "check_days_ahead": 28
 }
