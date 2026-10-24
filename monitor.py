@@ -124,12 +124,9 @@ def run_monitor():
         if alert_id in history:
             continue
 
-        # Weryfikacja: premiera nowego serialu (S01E01) lub premiera kolejnego sezonu (S02+E01)
+        # Usunięto blokadę dla odcinków > 1. 
+        # Teraz każdy odcinek w zasięgu dat zostanie przetworzony.
         is_new_series = season_num == 1 and episode_num == 1
-        is_returning = season_num > 1 and episode_num == 1
-
-        if not (is_new_series or is_returning):
-            continue
 
         # Przygotowanie metadanych do Embedu
         ep_name = next_ep.get("name") or f"Odcinek {episode_num}"
@@ -164,8 +161,12 @@ def run_monitor():
             color = 0x2ECC71  # Zielony
             target_webhook = new_series_wh
         else:
-            title_prefix = f"🔵 PREMIERA SEZONU {season_num}"
-            color = 0x3498DB  # Niebieski
+            if episode_num == 1:
+                title_prefix = f"🔵 PREMIERA SEZONU {season_num}"
+                color = 0x3498DB  # Niebieski
+            else:
+                title_prefix = "📺 NOWY ODCINEK"
+                color = 0x9B59B6  # Fioletowy
             target_webhook = returning_wh
 
         embed = {
@@ -211,7 +212,3 @@ def run_monitor():
 
     save_json(HISTORY_FILE, history)
     print(f"Zakończono. Wysłano nowych powiadomień: {alerts_sent}")
-
-
-if __name__ == "__main__":
-    run_monitor()
