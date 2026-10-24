@@ -56,7 +56,6 @@ def send_discord_embed(webhook_url, embed_data):
 
 
 def get_week_range(date_obj):
-    """Zwraca początek (poniedziałek) i koniec (niedziela) danego tygodnia dla daty."""
     start_week = date_obj - timedelta(days=date_obj.weekday())
     end_week = start_week + timedelta(days=6)
     return start_week, end_week
@@ -83,7 +82,6 @@ def run_monitor():
     tz_warsaw = pytz.timezone("Europe/Warsaw")
     today = datetime.now(tz_warsaw).date()
 
-    # Zakres: 2 miesiące wstecz (60 dni) do 4 tygodni w przód (28 dni)
     start_date = today - timedelta(days=60)
     max_check_date = today + timedelta(days=28)
 
@@ -98,32 +96,48 @@ def run_monitor():
         discover_url = "https://api.themoviedb.org/3/discover/movie"
 
         movies_to_process = []
-        for page in range(1, 4):
-            params = {
-                "api_key": api_key,
-                "region": "PL",
+
+        # Dwa zapytania: jedno dla przeszłości (sort od najnowszych wstecz), drugie dla przyszłości (sort od najbliższych)
+        queries = [
+            {
                 "release_date.gte": start_date.strftime("%Y-%m-%d"),
+                "release_date.lte": (today - timedelta(days=1)).strftime(
+                    "%Y-%m-%d"
+                ),
+                "sort_by": "release_date.desc",
+            },
+            {
+                "release_date.gte": today.strftime("%Y-%m-%d"),
                 "release_date.lte": max_check_date.strftime("%Y-%m-%d"),
-                "with_release_type": "3|2",
                 "sort_by": "release_date.asc",
-                "page": page,
-                "language": "pl-PL",
-            }
-            try:
-                res = requests.get(discover_url, params=params, timeout=10)
-                data = res.json()
-                results = data.get("results", [])
-                if not results:
+            },
+        ]
+
+        for q_params in queries:
+            for page in range(1, 3):
+                params = {
+                    "api_key": api_key,
+                    "region": "PL",
+                    "with_release_type": "3|2",
+                    "page": page,
+                    "language": "pl-PL",
+                    **q_params,
+                }
+                try:
+                    res = requests.get(discover_url, params=params, timeout=10)
+                    data = res.json()
+                    results = data.get("results", [])
+                    if not results:
+                        break
+                    for m in results:
+                        if m not in movies_to_process:
+                            movies_to_process.append(m)
+                except Exception as e:
+                    print(f"Błąd pobierania discover filmów: {e}")
                     break
-                for m in results:
-                    if m not in movies_to_process:
-                        movies_to_process.append(m)
-            except Exception as e:
-                print(f"Błąd pobierania discover filmów: {e}")
-                break
 
         print(
-            f"Znaleziono filmów w zakresie PL w bazie TMDB: {len(movies_to_process)}"
+            f"Unikalnych filmów w zakresie PL pobranych z TMDB: {len(movies_to_process)}"
         )
 
         for movie in movies_to_process:
@@ -166,8 +180,6 @@ def run_monitor():
             alert_id = f"pl_auto_{movie_id}_{pl_date_str}"
             if alert_id in history:
                 continue
-
-            # USUNIĘTO OGRANICZENIE 3 DNI - TERAZ WYŚLIE TEŻ HISTORIĘ Z 2 MIESIĘCY WSTECZ
 
             overview = movie.get("overview") or "Brak opisu w bazie TMDB."
             if len(overview) > 400:
@@ -223,7 +235,7 @@ def run_monitor():
                 alerts_sent += 1
                 print(f"Wysłano polską premierę kinową: {movie_name}")
 
-    # ==================== 2. SPRAWDZANIE SERIALI (Ręczna lista) ====================
+    # ==================== 2. SPRAWDZANIE SERIALI ====================
     print(f"Liczba obserwowanych seriali: {len(tracked_shows)}")
     for show in tracked_shows:
         show_id = show["id"]
@@ -348,7 +360,7 @@ def run_monitor():
             alerts_sent += 1
             print(f"Wysłano powiadomienie serialowe: {show_name}")
 
-    # ==================== 3. SPRAWDZANIE FILMÓW (Ręczna lista z GUI) ====================
+    # ==================== 3. SPRAWDZANIE FILMÓW (Ręczna lista) ====================
     print(f"Liczba obserwowanych filmów (ręcznych): {len(tracked_movies)}")
     for movie in tracked_movies:
         movie_id = movie["id"]
@@ -370,7 +382,6 @@ def run_monitor():
             print(f"Nie udało się pobrać danych dla filmu {movie_name}: {e}")
             continue
 
-        # Światowa ręczna
         world_date_str = data.get("release_date")
         if world_date_str and movie_world_wh:
             try:
@@ -443,7 +454,6 @@ def run_monitor():
             except ValueError:
                 pass
 
-        # Polska ręczna
         pl_date_str = None
         for country in rel_res.get("results", []):
             if country.get("iso_3166_1") == "PL":
